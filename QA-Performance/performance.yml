@@ -1,0 +1,43 @@
+config:
+  target: "https://api.todoist.com"
+  phases:
+    - duration: 5
+      arrivalRate: 3
+      name: "Phase 1"
+    - duration: 10
+      arrivalRate: 6
+      name: "Phase 2"
+  defaults:
+    headers:
+      Authorization: Bearer {{ $processEnvironment.TOKEN }}
+      Content-type: application/json
+  ##processor: "./myProcessor.js"
+scenarios:
+  - flow:
+      - post:
+          url: "/rest/v1/tasks"
+          json:
+            content: "Buy Coffee"
+            project_id: 2261563418
+          capture:
+            json: "$.id"
+            as: "project_id"
+      - log: "Current Task id is {{ project_id }}"    
+      - post:
+          url: "/rest/v1/tasks/{{ project_id }}"
+          json:
+            content: "Buy a Coffe Machine before Coffee"
+      - get:
+          url: "/rest/v1/tasks/{{ project_id }}"
+          capture:
+            json: "$.content"
+            as: "content_get"
+      - log: "The content of the GET request is {{ content_get }}"
+      - get:
+          url: "/rest/v1/tasks"
+      - post:
+          url: "/rest/v1/tasks/{{ project_id }}/close"
+      - post:
+          url: "/rest/v1/tasks/{{ project_id }}/reopen"
+      - delete:
+          url: "/rest/v1/tasks/{{ project_id }}"
